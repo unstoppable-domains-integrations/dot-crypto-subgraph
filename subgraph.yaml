@@ -1,0 +1,71 @@
+specVersion: 0.0.2
+description: >-
+  Using human-readable names for retrieving crypto addresses and records.
+repository: 'https://github.com/unstoppabledomains/unstoppable-subgraph'
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: DotCryptoRegistry
+    network: mainnet
+    source:
+      startBlock: 9082251
+      address: "0xD1E5b0FF1287aA9f9A268759062E4Ab08b9Dacbe"
+      abi: DotCryptoRegistry
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - ApprovalForAll
+        - NewURI
+        - NewURIPrefix
+        - Resolve
+        - Sync
+        - Transfer
+      abis:
+        - name: DotCryptoRegistry
+          file: ./abis/DotCryptoRegistry.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: NewURI(indexed uint256,string)
+          handler: handleNewURI
+        - event: NewURIPrefix(string)
+          handler: handleNewURIPrefix
+        - event: Resolve(indexed uint256,indexed address)
+          handler: handleResolve
+        - event: Sync(indexed address,indexed uint256,indexed uint256)
+          handler: handleSync
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+      file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: Resolver
+    network: mainnet
+    source:
+      startBlock: 9923764
+      address: "0xb66DcE2DA6afAAa98F2013446dBCB0f4B0ab2842"
+      abi: Resolver
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Set
+        - NewKey
+        - ResetRecords
+      abis:
+        - name: Resolver
+          file: ./abis/Resolver.json
+      eventHandlers:
+        - event: Set(indexed uint256,indexed string,indexed string,string,string)
+          handler: _set
+        - event: NewKey(indexed uint256,indexed string,string)
+          handler: _set
+        - event: ResetRecords(indexed uint256)
+          handler: _setPreset
+      file: ./src/mapping.ts

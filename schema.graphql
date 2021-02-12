@@ -1,0 +1,82 @@
+type Domain @entity {
+  id: ID! # The namehash of domain
+  name: String # The human readable name if known
+  labelName: String # The human readable label name if known
+  labelhash: Bytes # keccak256(labelName)
+  parent: Domain # The namehash (id) of the parent name
+  subdomains: [Domain!]! @derivedFrom(field: "parent") # Can count domains from length of array
+  resolvedAddress: Account # Address from resolver
+  owner: Account!
+  resolver: Resolver
+  createdAt: BigInt!
+  events: [DomainEvent!]! @derivedFrom(field: "domain")
+}
+
+
+interface DomainEvent {
+  id: ID!
+  domain: Domain!
+  blockNumber: Int!
+  transactionID: Bytes!
+}
+
+type Transfer implements DomainEvent @entity {
+  id: ID!
+  domain: Domain!
+  blockNumber: Int!
+  transactionID: Bytes!
+  owner: Account!
+}
+
+type NewOwner implements DomainEvent @entity {
+  id: ID!
+  parentDomain: Domain!
+  domain: Domain!
+  blockNumber: Int!
+  transactionID: Bytes!
+  owner: Account!
+}
+
+type NewResolver implements DomainEvent @entity {
+  id: ID!
+  domain: Domain!
+  blockNumber: Int!
+  transactionID: Bytes!
+  resolver: Resolver!
+}
+
+type Account @entity {
+  id: ID!
+  domains: [Domain!]! @derivedFrom(field: "owner")
+}
+
+type DomainTransferred @entity {
+  id: ID!
+  domain: Domain!
+  blockNumber: Int!
+  transactionID: Bytes!
+  newOwner: Account!
+}
+
+type Resolver @entity {
+  id: ID! # Concatenation of resolver address and namehash
+  domain: Domain
+  address: Bytes! # Address of resolver contract
+  records: [String!] # Set of record keys
+  events: [ResolverEvent!]! @derivedFrom(field: "resolver")
+}
+
+interface ResolverEvent {
+  id: ID! # blockNumber + logId
+  resolver: Resolver!
+  blockNumber: Int!
+  transactionID: Bytes!
+}
+
+type RecordChanged implements ResolverEvent @entity {
+  id: ID!
+  resolver: Resolver!
+  blockNumber: Int!
+  transactionID: Bytes!
+  key: String!
+}
