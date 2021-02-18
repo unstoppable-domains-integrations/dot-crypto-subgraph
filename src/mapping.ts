@@ -1,7 +1,15 @@
-import { Address, log } from "@graphprotocol/graph-ts";
+import { Address, log, ethereum } from "@graphprotocol/graph-ts";
 import { NewURI, Resolve, Transfer } from "../generated/Registry/Registry";
 import { ResetRecords, Set } from "../generated/Resolver/Resolver";
-import { Resolver, Domain, Account, Record } from "../generated/schema";
+import {
+  Resolver,
+  Domain,
+  Account,
+  Record,
+  KeyChange as KeyChangeEvent,
+  Transfer as TransferEvent,
+  ResetRecord as ResetRecordEvent,
+} from "../generated/schema";
 
 export function handleNewURI(event: NewURI): void {
   const node = event.params.tokenId.toHexString();
@@ -39,6 +47,12 @@ export function handleTransfer(event: Transfer): void {
   domain.resolver = null;
   domain.owner = account.id;
   domain.save();
+  const domainEvent = new TransferEvent(createEventID(event));
+  domainEvent.blockNumber = event.block.number.toI32();
+  domainEvent.transactionID = event.transaction.hash;
+  domainEvent.domain = domain.id;
+  domainEvent.owner = account.id;
+  domainEvent.save();
 }
 
 export function handleResetRecords(event: ResetRecords): void {
@@ -50,10 +64,21 @@ export function handleResetRecords(event: ResetRecords): void {
   }
   resolver.records = [];
   resolver.save();
+  const resolverEvent = new ResetRecordEvent(createEventID(event));
+  resolverEvent.resolver = resolver.id;
+  resolverEvent.blockNumber = event.block.number.toI32();
+  resolverEvent.transactionID = event.transaction.hash;
+  resolverEvent.save();
 }
 
 export function handleSet(event: Set): void {
   const node = event.params.tokenId.toHexString();
+  let resolver = Resolver.load(createResolverID(node, event.address));
+  if (resolver == null) {
+    resolver = new Resolver(createResolverID(node, event.address));
+    resolver.save();
+  }
+
   let record = Record.load(createRecordID(node, event.params.key));
   if (record == null) {
     record = new Record(createRecordID(node, event.params.key));
@@ -61,12 +86,20 @@ export function handleSet(event: Set): void {
   record.key = event.params.key;
   record.value = event.params.value;
   record.save();
-  let resolver = Resolver.load(createResolverID(node, event.address));
-  if (resolver == null) {
-    resolver = new Resolver(createResolverID(node, event.address));
+  if (!resolver.records.includes(record.id)) {
+    let records = resolver.records;
+    records.push(record.id);
+    resolver.records = records;
+    resolver.save();
   }
-  resolver.records.push(record.id);
-  resolver.save();
+
+  const resolverEvent = new KeyChangeEvent(createEventID(event));
+  resolverEvent.resolver = resolver.id;
+  resolverEvent.blockNumber = event.block.number.toI32();
+  resolverEvent.transactionID = event.transaction.hash;
+  resolverEvent.key = event.params.key;
+  resolverEvent.value = event.params.value;
+  resolverEvent.save();
 }
 
 function createRecordID(node: string, key: String): string {
@@ -78,4 +111,11 @@ function createResolverID(node: string, resolver: Address): string {
     .toHexString()
     .concat("-")
     .concat(node);
+}
+
+function createEventID(event: ethereum.Event): string {
+  return event.block.number
+    .toString()
+    .concat("-")
+    .concat(event.logIndex.toString());
 }
