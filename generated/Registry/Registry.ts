@@ -176,9 +176,9 @@ export class Transfer__Params {
   }
 }
 
-export class DotCryptoRegistry extends ethereum.SmartContract {
-  static bind(address: Address): DotCryptoRegistry {
-    return new DotCryptoRegistry("DotCryptoRegistry", address);
+export class Registry extends ethereum.SmartContract {
+  static bind(address: Address): Registry {
+    return new Registry("Registry", address);
   }
 
   balanceOf(owner: Address): BigInt {

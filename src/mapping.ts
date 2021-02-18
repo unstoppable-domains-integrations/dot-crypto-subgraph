@@ -1,78 +1,81 @@
-import { BigInt } from "@graphprotocol/graph-ts";
-import {
-  DotCryptoRegistry,
-  Approval,
-  ApprovalForAll,
-  NewURI,
-  NewURIPrefix,
-  Resolve,
-  Sync,
-  Transfer,
-} from "../generated/DotCryptoRegistry/DotCryptoRegistry";
-import { ExampleEntity } from "../generated/schema";
+import { Address, log } from "@graphprotocol/graph-ts";
+import { NewURI, Resolve, Transfer } from "../generated/Registry/Registry";
+import { ResetRecords, Set } from "../generated/Resolver/Resolver";
+import { Resolver, Domain, Account, Record } from "../generated/schema";
 
-export function handleApproval(event: Approval): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex());
-
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (entity == null) {
-    entity = new ExampleEntity(event.transaction.from.toHex());
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0);
-  }
-
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count.plus(BigInt.fromI32(1));
-
-  // Entity fields can be set based on event parameters
-  entity.owner = event.params.owner;
-  entity.approved = event.params.approved;
-
-  // Entities can be written to the store with `.save()`
-  entity.save();
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.balanceOf(...)
-  // - contract.childIdOf(...)
-  // - contract.getApproved(...)
-  // - contract.isApprovedForAll(...)
-  // - contract.isApprovedOrOwner(...)
-  // - contract.isController(...)
-  // - contract.name(...)
-  // - contract.ownerOf(...)
-  // - contract.resolverOf(...)
-  // - contract.root(...)
-  // - contract.supportsInterface(...)
-  // - contract.symbol(...)
-  // - contract.tokenURI(...)
+export function handleNewURI(event: NewURI): void {
+  const node = event.params.tokenId.toHexString();
+  const domain = Domain.load(node);
+  domain.name = event.params.uri;
+  domain.save();
 }
 
-export function handleApprovalForAll(event: ApprovalForAll): void {}
+export function handleResolve(event: Resolve): void {
+  const node = event.params.tokenId.toHexString();
+  const domain = Domain.load(node);
+  let resolver = Resolver.load(createResolverID(node, event.params.to));
+  if (resolver == null) {
+    resolver = new Resolver(createResolverID(node, event.params.to));
+    resolver.domain = domain.id;
+    resolver.address = event.params.to;
+    resolver.save();
+  }
+  domain.resolver = resolver.id;
+  domain.save();
+}
 
-export function handleNewURI(event: NewURI): void {}
+export function handleTransfer(event: Transfer): void {
+  const node = event.params.tokenId.toHexString();
+  let domain = Domain.load(node);
+  if (domain == null) {
+    domain = new Domain(node);
+    domain.createdAt = event.block.timestamp;
+  }
+  let account = Account.load(event.params.to.toHexString());
+  if (account == null) {
+    account = new Account(event.params.to.toHexString());
+    account.save();
+  }
+  domain.resolver = null;
+  domain.owner = account.id;
+  domain.save();
+}
 
-export function handleNewURIPrefix(event: NewURIPrefix): void {}
+export function handleResetRecords(event: ResetRecords): void {
+  const node = event.params.tokenId.toHexString();
 
-export function handleResolve(event: Resolve): void {}
+  let resolver = Resolver.load(createResolverID(node, event.address));
+  if (resolver == null) {
+    resolver = new Resolver(createResolverID(node, event.address));
+  }
+  resolver.records = [];
+  resolver.save();
+}
 
-export function handleSync(event: Sync): void {}
+export function handleSet(event: Set): void {
+  const node = event.params.tokenId.toHexString();
+  let record = Record.load(createRecordID(node, event.params.key));
+  if (record == null) {
+    record = new Record(createRecordID(node, event.params.key));
+  }
+  record.key = event.params.key;
+  record.value = event.params.value;
+  record.save();
+  let resolver = Resolver.load(createResolverID(node, event.address));
+  if (resolver == null) {
+    resolver = new Resolver(createResolverID(node, event.address));
+  }
+  resolver.records.push(record.id);
+  resolver.save();
+}
 
-export function handleTransfer(event: Transfer): void {}
+function createRecordID(node: string, key: String): string {
+  return node.concat("-").concat(key.toString());
+}
+
+function createResolverID(node: string, resolver: Address): string {
+  return resolver
+    .toHexString()
+    .concat("-")
+    .concat(node);
+}

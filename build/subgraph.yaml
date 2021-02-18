@@ -1,6 +1,6 @@
 specVersion: 0.0.2
 schema:
-  file: ./schema.graphql
+  file: schema.graphql
 dataSources:
   - kind: ethereum/contract
     name: Registry
@@ -19,7 +19,7 @@ dataSources:
         - Transfer
       abis:
         - name: Registry
-          file: ./abis/Registry.json
+          file: Registry/abis/Registry.json
       eventHandlers:
         - event: NewURI(indexed uint256,string)
           handler: handleNewURI
@@ -27,7 +27,7 @@ dataSources:
           handler: handleResolve
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-      file: ./src/mapping.ts
+      file: Registry/Registry.wasm
   - kind: ethereum/contract
     name: Resolver
     network: mainnet
@@ -43,10 +43,10 @@ dataSources:
         - Set
       abis:
         - name: Resolver
-          file: ./abis/Resolver.json
+          file: Resolver/abis/Resolver.json
       eventHandlers:
         - event: ResetRecords(indexed uint256)
           handler: handleResetRecords
         - event: Set(indexed uint256,indexed string,indexed string,string,string)
           handler: handleSet
-      file: ./src/mapping.ts
+      file: Registry/Registry.wasm
