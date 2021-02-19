@@ -1,4 +1,4 @@
-import { Address, log, ethereum } from "@graphprotocol/graph-ts";
+import { Address, ethereum } from "@graphprotocol/graph-ts";
 import { NewURI, Resolve, Transfer } from "../generated/Registry/Registry";
 import { ResetRecords, Set } from "../generated/Resolver/Resolver";
 import {
@@ -6,7 +6,7 @@ import {
   Domain,
   Account,
   Record,
-  KeyChange as KeyChangeEvent,
+  Set as SetEvent,
   Transfer as TransferEvent,
   ResetRecord as ResetRecordEvent,
 } from "../generated/schema";
@@ -79,9 +79,9 @@ export function handleSet(event: Set): void {
     resolver.save();
   }
 
-  let record = Record.load(createRecordID(node, event.params.key));
+  let record = Record.load(resolver.id.concat(event.params.key));
   if (record == null) {
-    record = new Record(createRecordID(node, event.params.key));
+    record = new Record(resolver.id.concat(event.params.key));
   }
   record.key = event.params.key;
   record.value = event.params.value;
@@ -93,17 +93,13 @@ export function handleSet(event: Set): void {
     resolver.save();
   }
 
-  const resolverEvent = new KeyChangeEvent(createEventID(event));
+  const resolverEvent = new SetEvent(createEventID(event));
   resolverEvent.resolver = resolver.id;
   resolverEvent.blockNumber = event.block.number.toI32();
   resolverEvent.transactionID = event.transaction.hash;
   resolverEvent.key = event.params.key;
   resolverEvent.value = event.params.value;
   resolverEvent.save();
-}
-
-function createRecordID(node: string, key: String): string {
-  return node.concat("-").concat(key.toString());
 }
 
 function createResolverID(node: string, resolver: Address): string {

@@ -42,7 +42,7 @@ interface ResolverEvent {
   transactionID: Bytes!
 }
 
-type KeyChange implements ResolverEvent @entity {
+type Set implements ResolverEvent @entity {
   id: ID!
   resolver: Resolver!
   blockNumber: Int!

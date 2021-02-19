@@ -294,7 +294,7 @@ export class Resolver extends Entity {
   }
 }
 
-export class KeyChange extends Entity {
+export class Set extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -302,17 +302,17 @@ export class KeyChange extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id !== null, "Cannot save KeyChange entity without an ID");
+    assert(id !== null, "Cannot save Set entity without an ID");
     assert(
       id.kind == ValueKind.STRING,
-      "Cannot save KeyChange entity with non-string ID. " +
+      "Cannot save Set entity with non-string ID. " +
         'Considering using .toHex() to convert the "id" to a string.'
     );
-    store.set("KeyChange", id.toString(), this);
+    store.set("Set", id.toString(), this);
   }
 
-  static load(id: string): KeyChange | null {
-    return store.get("KeyChange", id) as KeyChange | null;
+  static load(id: string): Set | null {
+    return store.get("Set", id) as Set | null;
   }
 
   get id(): string {
