@@ -171,6 +171,73 @@ export class Transfer extends Entity {
   }
 }
 
+export class Resolve extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id !== null, "Cannot save Resolve entity without an ID");
+    assert(
+      id.kind == ValueKind.STRING,
+      "Cannot save Resolve entity with non-string ID. " +
+        'Considering using .toHex() to convert the "id" to a string.'
+    );
+    store.set("Resolve", id.toString(), this);
+  }
+
+  static load(id: string): Resolve | null {
+    return store.get("Resolve", id) as Resolve | null;
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get domain(): string {
+    let value = this.get("domain");
+    return value.toString();
+  }
+
+  set domain(value: string) {
+    this.set("domain", Value.fromString(value));
+  }
+
+  get blockNumber(): i32 {
+    let value = this.get("blockNumber");
+    return value.toI32();
+  }
+
+  set blockNumber(value: i32) {
+    this.set("blockNumber", Value.fromI32(value));
+  }
+
+  get transactionID(): Bytes {
+    let value = this.get("transactionID");
+    return value.toBytes();
+  }
+
+  set transactionID(value: Bytes) {
+    this.set("transactionID", Value.fromBytes(value));
+  }
+
+  get to(): string {
+    let value = this.get("to");
+    return value.toString();
+  }
+
+  set to(value: string) {
+    this.set("to", Value.fromString(value));
+  }
+}
+
 export class Account extends Entity {
   constructor(id: string) {
     super();
@@ -456,6 +523,23 @@ export class Record extends Entity {
 
   set id(value: string) {
     this.set("id", Value.fromString(value));
+  }
+
+  get resolver(): string | null {
+    let value = this.get("resolver");
+    if (value === null || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toString();
+    }
+  }
+
+  set resolver(value: string | null) {
+    if (value === null) {
+      this.unset("resolver");
+    } else {
+      this.set("resolver", Value.fromString(value as string));
+    }
   }
 
   get key(): string {

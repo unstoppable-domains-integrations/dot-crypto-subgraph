@@ -15,6 +15,7 @@ import {
   Domain,
   Account,
   Record,
+  Resolve as ResolveEvent,
   Set as SetEvent,
   Transfer as TransferEvent,
   ResetRecord as ResetRecordEvent,
@@ -45,6 +46,13 @@ export function handleResolve(event: Resolve): void {
   }
   domain.resolver = resolver.id;
   domain.save();
+
+  const domainEvent = new ResolveEvent(createEventID(event));
+  domainEvent.blockNumber = event.block.number.toI32();
+  domainEvent.transactionID = event.transaction.hash;
+  domainEvent.domain = domain.id;
+  domainEvent.to = resolver.id;
+  domainEvent.save();
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -72,12 +80,23 @@ export function handleTransfer(event: Transfer): void {
 export function handleResetRecords(event: ResetRecords): void {
   const node = event.params.tokenId.toHexString();
 
+  const domain = Domain.load(node);
   let resolver = Resolver.load(createResolverID(node, event.address));
   if (resolver == null) {
     resolver = new Resolver(createResolverID(node, event.address));
+    resolver.address = event.address;
+    resolver.domain = domain.id;
   }
-  resolver.records = [];
   resolver.save();
+  const records = resolver.records;
+  if (records) {
+    for (let i = 0; i <= records.length; i++) {
+      const recordId = (records as string[])[i];
+      const record = Record.load(recordId);
+      record.resolver = null;
+      record.save();
+    }
+  }
   const resolverEvent = new ResetRecordEvent(createEventID(event));
   resolverEvent.resolver = resolver.id;
   resolverEvent.blockNumber = event.block.number.toI32();
@@ -87,9 +106,12 @@ export function handleResetRecords(event: ResetRecords): void {
 
 export function handleSet(event: Set): void {
   const node = event.params.tokenId.toHexString();
+  const domain = Domain.load(node);
   let resolver = Resolver.load(createResolverID(node, event.address));
   if (resolver == null) {
     resolver = new Resolver(createResolverID(node, event.address));
+    resolver.address = event.address;
+    resolver.domain = domain.id;
     resolver.save();
   }
 
@@ -97,16 +119,10 @@ export function handleSet(event: Set): void {
   if (record == null) {
     record = new Record(resolver.id.concat(event.params.key));
   }
+  record.resolver = resolver.id;
   record.key = event.params.key;
   record.value = event.params.value;
   record.save();
-  if (!resolver.records.includes(record.id)) {
-    let records = resolver.records;
-    records.push(record.id);
-    resolver.records = records;
-    resolver.save();
-  }
-
   const resolverEvent = new SetEvent(createEventID(event));
   resolverEvent.resolver = resolver.id;
   resolverEvent.blockNumber = event.block.number.toI32();

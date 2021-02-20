@@ -22,6 +22,14 @@ type Transfer implements DomainEvent @entity {
   owner: Account!
 }
 
+type Resolve implements DomainEvent @entity {
+  id: ID!
+  domain: Domain!
+  blockNumber: Int!
+  transactionID: Bytes!
+  to: Resolver!
+}
+
 type Account @entity {
   id: ID!
   domains: [Domain!]! @derivedFrom(field: "owner")
@@ -31,7 +39,7 @@ type Resolver @entity {
   id: ID! # Concatenation of resolver address and namehash
   domain: Domain
   address: Bytes! # Address of resolver contract
-  records: [Record!]
+  records: [Record!] @derivedFrom(field: "resolver")
   events: [ResolverEvent!]! @derivedFrom(field: "resolver")
 }
 
@@ -60,6 +68,7 @@ type ResetRecord implements ResolverEvent @entity {
 
 type Record @entity {
   id: ID! # Concatenation of namehash and key
+  resolver: Resolver
   key: String!
   value: String!
 }
