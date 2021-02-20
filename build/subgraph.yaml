@@ -27,6 +27,17 @@ dataSources:
           handler: handleResolve
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
+      callHandlers:
+        - function: controlledSafeTransferFrom(address,address,uint256,bytes)
+          handler: handleControlledSafeTransferFrom
+        - function: safeTransferFromChild(address,address,uint256,string,bytes)
+          handler: handleSafeTransferFromChild
+        - function: controlledTransferFrom(address,address,uint256)
+          handler: handleControlledTransferFrom
+        - function: transferFromChild(address,address,uint256,string)
+          handler: handleTransferFromChild
+        - function: burn(uint256)
+          handler: handleBurn
       file: Registry/Registry.wasm
   - kind: ethereum/contract
     name: Resolver

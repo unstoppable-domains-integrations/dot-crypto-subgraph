@@ -1,5 +1,14 @@
 import { Address, ethereum } from "@graphprotocol/graph-ts";
-import { NewURI, Resolve, Transfer } from "../generated/Registry/Registry";
+import {
+  BurnCall,
+  ControlledSafeTransferFromCall,
+  ControlledTransferFromCall,
+  NewURI,
+  Resolve,
+  SafeTransferFromChild1Call,
+  Transfer,
+  TransferFromChildCall,
+} from "../generated/Registry/Registry";
 import { ResetRecords, Set } from "../generated/Resolver/Resolver";
 import {
   Resolver,
@@ -10,6 +19,12 @@ import {
   Transfer as TransferEvent,
   ResetRecord as ResetRecordEvent,
 } from "../generated/schema";
+
+const EMPTY_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+/*
+  Event Handlers
+*/
 
 export function handleNewURI(event: NewURI): void {
   const node = event.params.tokenId.toHexString();
@@ -44,7 +59,6 @@ export function handleTransfer(event: Transfer): void {
     account = new Account(event.params.to.toHexString());
     account.save();
   }
-  domain.resolver = null;
   domain.owner = account.id;
   domain.save();
   const domainEvent = new TransferEvent(createEventID(event));
@@ -101,6 +115,59 @@ export function handleSet(event: Set): void {
   resolverEvent.value = event.params.value;
   resolverEvent.save();
 }
+
+/*
+  Call Handlers
+*/
+
+export function handleBurn(event: BurnCall): void {
+  const node = event.inputs.tokenId.toHexString();
+  let domain = Domain.load(node);
+  if (domain != null) {
+    domain.resolver = null;
+    domain.owner = EMPTY_ADDRESS;
+    domain.name = "";
+    domain.save();
+  }
+}
+
+export function handleControlledSafeTransferFrom(
+  event: ControlledSafeTransferFromCall
+): void {
+  const node = event.inputs.tokenId.toHexString();
+  const domain = Domain.load(node);
+  domain.resolver = null;
+  domain.save();
+}
+
+export function handleSafeTransferFromChild(
+  event: SafeTransferFromChild1Call
+): void {
+  const node = event.inputs.tokenId.toHexString();
+  const domain = Domain.load(node);
+  domain.resolver = null;
+  domain.save();
+}
+
+export function handleControlledTransferFrom(
+  event: ControlledTransferFromCall
+): void {
+  const node = event.inputs.tokenId.toHexString();
+  const domain = Domain.load(node);
+  domain.resolver = null;
+  domain.save();
+}
+
+export function handleTransferFromChild(event: TransferFromChildCall): void {
+  const node = event.inputs.tokenId.toHexString();
+  const domain = Domain.load(node);
+  domain.resolver = null;
+  domain.save();
+}
+
+/*
+  Helpers
+*/
 
 function createResolverID(node: string, resolver: Address): string {
   return resolver
