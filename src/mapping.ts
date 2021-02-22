@@ -9,7 +9,7 @@ import {
   Transfer,
   TransferFromChildCall,
 } from "../generated/Registry/Registry";
-import { ResetRecords, Set } from "../generated/Resolver/Resolver";
+import { ResetRecords, Set, Set1 } from "../generated/Resolver/Resolver";
 import {
   Resolver,
   Domain,
@@ -128,6 +128,34 @@ export function handleSet(event: Set): void {
   resolverEvent.blockNumber = event.block.number.toI32();
   resolverEvent.transactionID = event.transaction.hash;
   resolverEvent.key = event.params.key;
+  resolverEvent.value = event.params.value;
+  resolverEvent.save();
+}
+
+export function handleOldSet(event: Set1): void {
+  const node = event.params.tokenId.toHexString();
+  const domain = Domain.load(node);
+  let resolver = Resolver.load(createResolverID(node, event.address));
+  if (resolver == null) {
+    resolver = new Resolver(createResolverID(node, event.address));
+    resolver.address = event.address;
+    resolver.domain = domain.id;
+    resolver.save();
+  }
+
+  let record = Record.load(resolver.id.concat(event.params.key.toHexString()));
+  if (record == null) {
+    record = new Record(resolver.id.concat(event.params.key.toHexString()));
+  }
+  record.resolver = resolver.id;
+  record.key = event.params.key.toHexString();
+  record.value = event.params.value;
+  record.save();
+  const resolverEvent = new SetEvent(createEventID(event));
+  resolverEvent.resolver = resolver.id;
+  resolverEvent.blockNumber = event.block.number.toI32();
+  resolverEvent.transactionID = event.transaction.hash;
+  resolverEvent.key = event.params.key.toHexString();
   resolverEvent.value = event.params.value;
   resolverEvent.save();
 }
