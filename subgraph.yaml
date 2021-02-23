@@ -36,6 +36,8 @@ dataSources:
           handler: handleControlledTransferFrom
         - function: transferFromChild(address,address,uint256,string)
           handler: handleTransferFromChild
+        - function: transferFrom(address,address,uint256)
+          handler: handleTransferFrom
         - function: burn(uint256)
           handler: handleBurn
       file: ./src/mapping.ts

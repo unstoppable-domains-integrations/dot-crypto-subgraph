@@ -7,6 +7,7 @@ import {
   Resolve,
   SafeTransferFromChild1Call,
   Transfer,
+  TransferFromCall,
   TransferFromChildCall,
 } from "../generated/Registry/Registry";
 import { ResetRecords, Set, Set1 } from "../generated/Resolver/Resolver";
@@ -182,6 +183,15 @@ export function handleBurn(event: BurnCall): void {
     domain.name = "";
     domain.save();
   }
+}
+
+export function handleTransferFrom(
+  event: TransferFromCall
+): void {
+  const node = event.inputs.tokenId.toHexString();
+  const domain = Domain.load(node);
+  domain.resolver = null;
+  domain.save();
 }
 
 export function handleControlledSafeTransferFrom(
