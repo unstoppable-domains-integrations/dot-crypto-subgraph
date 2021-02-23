@@ -59,7 +59,7 @@ dataSources:
         - event: ResetRecords(indexed uint256)
           handler: handleResetRecords
         - event: Set(indexed uint256,indexed string,string,indexed uint256)
-          handler: handleOldSet
+          handler: handleLegacySet
         - event: Set(indexed uint256,indexed string,indexed string,string,string)
           handler: handleSet
       file: ./src/mapping.ts

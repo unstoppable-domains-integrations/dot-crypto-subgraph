@@ -1,4 +1,4 @@
-import { Address, ethereum } from "@graphprotocol/graph-ts";
+import { Address, ethereum, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
   BurnCall,
   ControlledSafeTransferFromCall,
@@ -104,70 +104,69 @@ export function handleResetRecords(event: ResetRecords): void {
   resolverEvent.save();
 }
 
-export function handleSet(event: Set): void {
-  const node = event.params.tokenId.toHexString();
+export function handleSetEvent(
+  tokenId: BigInt,
+  resolverAddress: Address,
+  key: string,
+  value: string,
+  eventBlockNumber: BigInt,
+  eventTxHash: Bytes,
+  eventId: string
+): void {
+  const node = tokenId.toHexString();
   const domain = Domain.load(node);
-  let resolver = Resolver.load(createResolverID(node, event.address));
+  let resolver = Resolver.load(createResolverID(node, resolverAddress));
   if (resolver === null) {
-    resolver = new Resolver(createResolverID(node, event.address));
-    resolver.address = event.address;
+    resolver = new Resolver(createResolverID(node, resolverAddress));
+    resolver.address = resolverAddress;
     resolver.domain = domain.id;
     resolver.save();
   }
 
-  let record = Record.load(resolver.id.concat(event.params.key));
+  let record = Record.load(resolver.id.concat(key));
   if (record === null) {
-    record = new Record(resolver.id.concat(event.params.key));
+    record = new Record(resolver.id.concat(key));
   }
-  record.key = event.params.key;
-  record.value = event.params.value;
-  if (record.value === "") {
+  record.key = key;
+  record.value = value;
+  // Removes record if value is empty
+  if (!record.value) {
     record.resolver = null;
   } else {
     record.resolver = resolver.id;
   }
-
   record.save();
-  const resolverEvent = new SetEvent(createEventID(event));
+  const resolverEvent = new SetEvent(eventId);
   resolverEvent.resolver = resolver.id;
-  resolverEvent.blockNumber = event.block.number.toI32();
-  resolverEvent.transactionID = event.transaction.hash;
-  resolverEvent.key = event.params.key;
-  resolverEvent.value = event.params.value;
+  resolverEvent.blockNumber = eventBlockNumber.toI32();
+  resolverEvent.transactionID = eventTxHash;
+  resolverEvent.key = key;
+  resolverEvent.value = value;
   resolverEvent.save();
 }
 
-export function handleOldSet(event: Set1): void {
-  const node = event.params.tokenId.toHexString();
-  const domain = Domain.load(node);
-  let resolver = Resolver.load(createResolverID(node, event.address));
-  if (resolver === null) {
-    resolver = new Resolver(createResolverID(node, event.address));
-    resolver.address = event.address;
-    resolver.domain = domain.id;
-    resolver.save();
-  }
+export function handleLegacySet(event: Set1): void {
+  handleSetEvent(
+    event.params.tokenId,
+    event.address,
+    event.params.key.toHexString(),
+    event.params.value,
+    event.block.number,
+    event.transaction.hash,
+    createEventID(event)
+  );
+}
 
-  let record = Record.load(resolver.id.concat(event.params.key.toHexString()));
-  if (record === null) {
-    record = new Record(resolver.id.concat(event.params.key.toHexString()));
-  }
-  record.key = event.params.key.toHexString();
-  record.value = event.params.value;
-  if (record.value === "") {
-    record.resolver = null;
-  } else {
-    record.resolver = resolver.id;
-  }
-
-  record.save();
-  const resolverEvent = new SetEvent(createEventID(event));
-  resolverEvent.resolver = resolver.id;
-  resolverEvent.blockNumber = event.block.number.toI32();
-  resolverEvent.transactionID = event.transaction.hash;
-  resolverEvent.key = event.params.key.toHexString();
-  resolverEvent.value = event.params.value;
-  resolverEvent.save();
+export function handleSet(event: Set): void {
+  handleSetEvent(
+    event.params.tokenId,
+    event.address,
+    event.params.key,
+    event.params.value,
+    event.block.number,
+    event.transaction.hash,
+    createEventID(event)
+  );
 }
 
 /*
