@@ -38,7 +38,7 @@ export function handleResolve(event: Resolve): void {
   const node = event.params.tokenId.toHexString();
   const domain = Domain.load(node);
   let resolver = Resolver.load(createResolverID(node, event.params.to));
-  if (resolver == null) {
+  if (resolver === null) {
     resolver = new Resolver(createResolverID(node, event.params.to));
     resolver.domain = domain.id;
     resolver.address = event.params.to;
@@ -58,12 +58,12 @@ export function handleResolve(event: Resolve): void {
 export function handleTransfer(event: Transfer): void {
   const node = event.params.tokenId.toHexString();
   let domain = Domain.load(node);
-  if (domain == null) {
+  if (domain === null) {
     domain = new Domain(node);
     domain.createdAt = event.block.timestamp;
   }
   let account = Account.load(event.params.to.toHexString());
-  if (account == null) {
+  if (account === null) {
     account = new Account(event.params.to.toHexString());
     account.save();
   }
@@ -82,7 +82,7 @@ export function handleResetRecords(event: ResetRecords): void {
 
   const domain = Domain.load(node);
   let resolver = Resolver.load(createResolverID(node, event.address));
-  if (resolver == null) {
+  if (resolver === null) {
     resolver = new Resolver(createResolverID(node, event.address));
     resolver.address = event.address;
     resolver.domain = domain.id;
@@ -108,7 +108,7 @@ export function handleSet(event: Set): void {
   const node = event.params.tokenId.toHexString();
   const domain = Domain.load(node);
   let resolver = Resolver.load(createResolverID(node, event.address));
-  if (resolver == null) {
+  if (resolver === null) {
     resolver = new Resolver(createResolverID(node, event.address));
     resolver.address = event.address;
     resolver.domain = domain.id;
@@ -116,12 +116,17 @@ export function handleSet(event: Set): void {
   }
 
   let record = Record.load(resolver.id.concat(event.params.key));
-  if (record == null) {
+  if (record === null) {
     record = new Record(resolver.id.concat(event.params.key));
   }
-  record.resolver = resolver.id;
   record.key = event.params.key;
   record.value = event.params.value;
+  if (record.value === "") {
+    record.resolver = null;
+  } else {
+    record.resolver = resolver.id;
+  }
+
   record.save();
   const resolverEvent = new SetEvent(createEventID(event));
   resolverEvent.resolver = resolver.id;
@@ -136,7 +141,7 @@ export function handleOldSet(event: Set1): void {
   const node = event.params.tokenId.toHexString();
   const domain = Domain.load(node);
   let resolver = Resolver.load(createResolverID(node, event.address));
-  if (resolver == null) {
+  if (resolver === null) {
     resolver = new Resolver(createResolverID(node, event.address));
     resolver.address = event.address;
     resolver.domain = domain.id;
@@ -144,12 +149,17 @@ export function handleOldSet(event: Set1): void {
   }
 
   let record = Record.load(resolver.id.concat(event.params.key.toHexString()));
-  if (record == null) {
+  if (record === null) {
     record = new Record(resolver.id.concat(event.params.key.toHexString()));
   }
-  record.resolver = resolver.id;
   record.key = event.params.key.toHexString();
   record.value = event.params.value;
+  if (record.value === "") {
+    record.resolver = null;
+  } else {
+    record.resolver = resolver.id;
+  }
+
   record.save();
   const resolverEvent = new SetEvent(createEventID(event));
   resolverEvent.resolver = resolver.id;
