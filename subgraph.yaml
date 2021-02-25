@@ -6,7 +6,7 @@ dataSources:
     name: Registry
     network: rinkeby
     source:
-      startBlock: 7484092 
+      startBlock: 7484092
       address: "0xAad76bea7CFEc82927239415BB18D2e93518ecBB"
       abi: Registry
     mapping:
@@ -27,27 +27,12 @@ dataSources:
           handler: handleResolve
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-      callHandlers:
-        - function: controlledSafeTransferFrom(address,address,uint256,bytes)
-          handler: handleControlledSafeTransferFrom
-        - function: safeTransferFromChild(address,address,uint256,string,bytes)
-          handler: handleSafeTransferFromChild
-        - function: controlledTransferFrom(address,address,uint256)
-          handler: handleControlledTransferFrom
-        - function: transferFromChild(address,address,uint256,string)
-          handler: handleTransferFromChild
-        - function: transferFrom(address,address,uint256)
-          handler: handleTransferFrom
-        - function: safeTransferFrom(address,address,uint256)
-          handler: handleSafeTransferFrom
-        - function: burn(uint256)
-          handler: handleBurn
       file: ./src/mapping.ts
   - kind: ethereum/contract
     name: Resolver
     network: rinkeby
     source:
-      startBlock: 7484092 
+      startBlock: 7484092
       abi: Resolver
     mapping:
       kind: ethereum/events
@@ -62,8 +47,6 @@ dataSources:
       eventHandlers:
         - event: ResetRecords(indexed uint256)
           handler: handleResetRecords
-        - event: Set(indexed uint256,indexed string,string,indexed uint256)
-          handler: handleLegacySet
         - event: Set(indexed uint256,indexed string,indexed string,string,string)
           handler: handleSet
       file: ./src/mapping.ts

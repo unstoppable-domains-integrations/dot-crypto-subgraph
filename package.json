@@ -5,7 +5,7 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ unstoppable-domains-integrations/dot-crypto-registry",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ unstoppable-domains-integrations/dot-crypto-rinkeby-registry",
     "create-local": "graph create --node http://localhost:8020/ unstoppable-domains-integrations/dot-crypto-subgraph",
     "remove-local": "graph remove --node http://localhost:8020/ unstoppable-domains-integrations/dot-crypto-subgraph",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 unstoppable-domains-integrations/dot-crypto-subgraph"

@@ -88,36 +88,6 @@ export class Set__Params {
   }
 }
 
-export class Set1 extends ethereum.Event {
-  get params(): Set1__Params {
-    return new Set1__Params(this);
-  }
-}
-
-export class Set1__Params {
-  _event: Set1;
-
-  constructor(event: Set1) {
-    this._event = event;
-  }
-
-  get preset(): BigInt {
-    return this._event.parameters[0].value.toBigInt();
-  }
-
-  get key(): Bytes {
-    return this._event.parameters[1].value.toBytes();
-  }
-
-  get value(): string {
-    return this._event.parameters[2].value.toString();
-  }
-
-  get tokenId(): BigInt {
-    return this._event.parameters[3].value.toBigInt();
-  }
-}
-
 export class Resolver__getByHashResult {
   value0: string;
   value1: string;
