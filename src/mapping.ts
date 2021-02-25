@@ -5,6 +5,7 @@ import {
   ControlledTransferFromCall,
   NewURI,
   Resolve,
+  SafeTransferFromCall,
   SafeTransferFromChild1Call,
   Transfer,
   TransferFromCall,
@@ -187,6 +188,15 @@ export function handleBurn(event: BurnCall): void {
 
 export function handleTransferFrom(
   event: TransferFromCall
+): void {
+  const node = event.inputs.tokenId.toHexString();
+  const domain = Domain.load(node);
+  domain.resolver = null;
+  domain.save();
+}
+
+export function handleSafeTransferFrom(
+  event: SafeTransferFromCall
 ): void {
   const node = event.inputs.tokenId.toHexString();
   const domain = Domain.load(node);
