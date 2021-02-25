@@ -4,10 +4,10 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Registry
-    network: mainnet
+    network: rinkeby
     source:
-      startBlock: 9082251
-      address: "0xD1E5b0FF1287aA9f9A268759062E4Ab08b9Dacbe"
+      startBlock: 7484092 
+      address: "0xAad76bea7CFEc82927239415BB18D2e93518ecBB"
       abi: Registry
     mapping:
       kind: ethereum/events
@@ -45,9 +45,9 @@ dataSources:
       file: ./src/mapping.ts
   - kind: ethereum/contract
     name: Resolver
-    network: mainnet
+    network: rinkeby
     source:
-      startBlock: 9082251
+      startBlock: 7484092 
       abi: Resolver
     mapping:
       kind: ethereum/events
