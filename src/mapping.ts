@@ -32,6 +32,9 @@ const EMPTY_ADDRESS = "0x0000000000000000000000000000000000000000";
 export function handleNewURI(event: NewURI): void {
   const node = event.params.tokenId.toHexString();
   const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
   domain.name = event.params.uri;
   domain.save();
 }
@@ -39,6 +42,9 @@ export function handleNewURI(event: NewURI): void {
 export function handleResolve(event: Resolve): void {
   const node = event.params.tokenId.toHexString();
   const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
   let resolver = Resolver.load(createResolverID(node, event.params.to));
   if (resolver === null) {
     resolver = new Resolver(createResolverID(node, event.params.to));
@@ -83,6 +89,9 @@ export function handleResetRecords(event: ResetRecords): void {
   const node = event.params.tokenId.toHexString();
 
   const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
   let resolver = Resolver.load(createResolverID(node, event.address));
   if (resolver === null) {
     resolver = new Resolver(createResolverID(node, event.address));
@@ -117,6 +126,9 @@ export function handleSetEvent(
 ): void {
   const node = tokenId.toHexString();
   const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
   let resolver = Resolver.load(createResolverID(node, resolverAddress));
   if (resolver === null) {
     resolver = new Resolver(createResolverID(node, resolverAddress));
@@ -186,20 +198,22 @@ export function handleBurn(event: BurnCall): void {
   }
 }
 
-export function handleTransferFrom(
-  event: TransferFromCall
-): void {
+export function handleTransferFrom(event: TransferFromCall): void {
   const node = event.inputs.tokenId.toHexString();
   const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
   domain.resolver = null;
   domain.save();
 }
 
-export function handleSafeTransferFrom(
-  event: SafeTransferFromCall
-): void {
+export function handleSafeTransferFrom(event: SafeTransferFromCall): void {
   const node = event.inputs.tokenId.toHexString();
   const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
   domain.resolver = null;
   domain.save();
 }
@@ -209,6 +223,9 @@ export function handleControlledSafeTransferFrom(
 ): void {
   const node = event.inputs.tokenId.toHexString();
   const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
   domain.resolver = null;
   domain.save();
 }
@@ -218,6 +235,9 @@ export function handleSafeTransferFromChild(
 ): void {
   const node = event.inputs.tokenId.toHexString();
   const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
   domain.resolver = null;
   domain.save();
 }
@@ -227,6 +247,9 @@ export function handleControlledTransferFrom(
 ): void {
   const node = event.inputs.tokenId.toHexString();
   const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
   domain.resolver = null;
   domain.save();
 }
@@ -234,6 +257,9 @@ export function handleControlledTransferFrom(
 export function handleTransferFromChild(event: TransferFromChildCall): void {
   const node = event.inputs.tokenId.toHexString();
   const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
   domain.resolver = null;
   domain.save();
 }
@@ -243,10 +269,7 @@ export function handleTransferFromChild(event: TransferFromChildCall): void {
 */
 
 function createResolverID(node: string, resolver: Address): string {
-  return resolver
-    .toHexString()
-    .concat("-")
-    .concat(node);
+  return resolver.toHexString().concat("-").concat(node);
 }
 
 function createEventID(event: ethereum.Event): string {
