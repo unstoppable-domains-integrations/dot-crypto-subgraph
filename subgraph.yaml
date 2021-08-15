@@ -3,12 +3,12 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: Registry
+    name: CNSRegistry
     network: mainnet
     source:
       startBlock: 9082251
       address: "0xD1E5b0FF1287aA9f9A268759062E4Ab08b9Dacbe"
-      abi: Registry
+      abi: CNSRegistry
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -18,11 +18,11 @@ dataSources:
         - Resolve
         - Transfer
       abis:
-        - name: Registry
-          file: ./abis/Registry.json
+        - name: CNSRegistry
+          file: ./abis/CNSRegistry.json
       eventHandlers:
         - event: NewURI(indexed uint256,string)
-          handler: handleNewURI
+          handler: handleCnsNewURI
         - event: Resolve(indexed uint256,indexed address)
           handler: handleResolve
         - event: Transfer(indexed address,indexed address,indexed uint256)
@@ -42,6 +42,35 @@ dataSources:
           handler: handleSafeTransferFrom
         - function: burn(uint256)
           handler: handleBurn
+      file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: UNSRegistry
+    network: mainnet
+    source:
+      startBlock: 12779230
+      address: "0x049aba7510f45BA5b64ea9E658E342F904DB358D"
+      abi: UNSRegistry
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - NewURI
+        - Transfer
+        - ResetRecords
+        - Set
+      abis:
+        - name: UNSRegistry
+          file: ./abis/UNSRegistry.json
+      eventHandlers:
+        - event: NewURI(indexed uint256,string)
+          handler: handleUnsNewURI
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: ResetRecords(indexed uint256)
+          handler: handleResetRecords
+        - event: Set(indexed uint256,indexed string,indexed string,string,string)
+          handler: handleSet
       file: ./src/mapping.ts
   - kind: ethereum/contract
     name: Resolver

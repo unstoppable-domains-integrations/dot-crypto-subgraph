@@ -24,18 +24,39 @@ import {
 } from "../generated/schema";
 
 const EMPTY_ADDRESS = "0x0000000000000000000000000000000000000000";
+const UNS_REGISTRY_ADDRESS = Address.fromString(
+  "0x049aba7510f45BA5b64ea9E658E342F904DB358D"
+);
 
 /*
   Event Handlers
 */
 
-export function handleNewURI(event: NewURI): void {
+export function handleCnsNewURI(event: NewURI): void {
   const node = event.params.tokenId.toHexString();
   const domain = Domain.load(node);
   if (domain === null) {
     return;
   }
   domain.name = event.params.uri;
+  domain.save();
+}
+
+export function handleUnsNewURI(event: NewURI): void {
+  const node = event.params.tokenId.toHexString();
+  const domain = Domain.load(node);
+  if (domain === null) {
+    return;
+  }
+  domain.name = event.params.uri;
+  let resolver = Resolver.load(createResolverID(node, UNS_REGISTRY_ADDRESS));
+  if (resolver === null) {
+    resolver = new Resolver(createResolverID(node, UNS_REGISTRY_ADDRESS));
+    resolver.domain = domain.id;
+    resolver.address = UNS_REGISTRY_ADDRESS;
+    resolver.save();
+  }
+  domain.resolver = resolver.id;
   domain.save();
 }
 
@@ -269,7 +290,10 @@ export function handleTransferFromChild(event: TransferFromChildCall): void {
 */
 
 function createResolverID(node: string, resolver: Address): string {
-  return resolver.toHexString().concat("-").concat(node);
+  return resolver
+    .toHexString()
+    .concat("-")
+    .concat(node);
 }
 
 function createEventID(event: ethereum.Event): string {
